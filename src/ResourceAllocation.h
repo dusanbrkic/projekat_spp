@@ -19,7 +19,8 @@ public:
     };
 private:
     void fillInterferenceGraph(Instructions&);
-    std::stack<Variable*> simplify();
+    std::stack<Variable*> simplify(bool);
+    void doResourceAllocation();
 
     std::vector<std::vector<char>> matrix;
     Instructions& instructions;

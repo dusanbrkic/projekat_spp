@@ -8,7 +8,7 @@ using namespace std;
 
 int main() {
     try {
-        std::string fileName = "..\\..\\examples\\simple.mavn";
+        std::string fileName = "..\\..\\examples\\multiply.mavn";
         bool retVal = false;
 
         LexicalAnalysis lex;
@@ -32,16 +32,18 @@ int main() {
         retVal = syn.Do();
 
         if (retVal) {
-            cout << "Syntax analysis finished successfully!" << endl;
+            cout << "Syntax and Semantic analysis finished successfully!" << endl;
         } else {
             throw runtime_error("\nException! Syntax analysis failed!\n");
         }
 
         LivenessAnalysis livenessAnalysis(syn);
         livenessAnalysis.DoLivenessAnalysis();
+        cout << "Liveness analysis finished successfully!" << endl;
 
-        InterferenceGraph ig(syn);
-        ig.DoInterferenceGraph();
+        InterferenceGraph interferenceGraph(syn);
+        interferenceGraph.DoInterferenceGraph();
+        cout << "Resource allocation finished successfully!" << endl;
     }
     catch (runtime_error e) {
         cout << e.what() << endl;

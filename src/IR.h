@@ -26,8 +26,10 @@ public:
 
     int getPosition() { return m_position; }
 
-    int index;
+    friend class InterferenceGraph;
+    friend class SyntaxAnalysis;
 private:
+    int index;
     VariableType m_type;
     std::string m_name;
     int m_position;

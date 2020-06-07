@@ -29,16 +29,25 @@ void InterferenceGraph::printMatrix() {
     }
 }
 
-std::stack<Variable *> InterferenceGraph::simplify() {
-    Variables::iterator iterator = variables.begin();
+std::stack<Variable *> InterferenceGraph::simplify(bool firstPass) {
+    Variables::iterator iterator;
     std::map<Variable *, int> m;
+
+    if(firstPass) for (int i = 0; i < size; i++) matrix[i][i] = '0';
+
+    iterator = variables.begin();
+    for (int i = 0; i < size; i++) {
+        if (matrix[i][i] != 'd')
+            m.insert(std::pair<Variable *, int>(*iterator, 0));
+        iterator++;
+    }
+
+    iterator = variables.begin();
+
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-            if (matrix[i][j] == '1') {
-                if (m.find(*iterator) == m.end())
-                    m.insert(std::pair<Variable *, int>(*iterator, 0));
-                else m[*iterator]++;
-            }
+            if (matrix[i][j] == '1')
+                m[*iterator]++;
         }
         iterator++;
     }
@@ -55,18 +64,61 @@ std::stack<Variable *> InterferenceGraph::simplify() {
     }
     s.push(i->second);
     for (int k = 0; k < size; k++) {
-        matrix.at(i->second->index).at(k) = '0';
-        matrix.at(k).at(i->second->index) = '0';
+        matrix.at(i->second->index).at(k) = 'd';
+        matrix.at(k).at(i->second->index) = 'd';
     }
     for (int h = 0; h < size; h++)
         for (int g = 0; g < size; g++)
-            if (matrix[h][g] != '0')
-                simplify();
+            if (matrix[h][g] != 'd')
+                simplify(false);
     return s;
+}
+
+
+void InterferenceGraph::doResourceAllocation() {
+    Variable *currentVariable;
+    Variables save;
+    int color;
+    bool find;
+
+    while (!s.empty()) {
+        currentVariable = s.top();
+        s.pop();
+
+        save.push_back(currentVariable);
+
+        if (save.size() == 1) {
+            // first variable on stack
+            currentVariable->m_assignment = (Regs) 1;
+        } else {
+            // there are other variables, need to assign color
+            Variables temp;
+            // get variable from stack which are interference with currentVariable
+            // put them in temp list
+            for (Variable *el : save)
+                if (matrix[currentVariable->index][el->index] == __INTERFERENCE__)
+                    temp.push_back(el);
+
+            // find diffrent color
+            for (color = 1; color <= __REG_NUMBER__; color++) {
+                find = true;
+                for (Variable *el : temp) {
+                    if (color == el->m_assignment) {
+                        find = false;
+                    }
+                }
+                if (find) {
+                    currentVariable->m_assignment = (Regs) color;
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void InterferenceGraph::DoInterferenceGraph() {
     fillInterferenceGraph(instructions);
-    simplify();
+    simplify(true);
     fillInterferenceGraph(instructions);
+    doResourceAllocation();
 }
