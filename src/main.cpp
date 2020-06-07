@@ -6,57 +6,47 @@
 
 using namespace std;
 
-int main()
-{
-	try
-	{
-		std::string fileName = "..\\..\\examples\\simple.mavn";
-		bool retVal = false;
+int main() {
+    try {
+        std::string fileName = "..\\..\\examples\\simple.mavn";
+        bool retVal = false;
 
-		LexicalAnalysis lex;
+        LexicalAnalysis lex;
 
-		if (!lex.readInputFile(fileName))
-			throw runtime_error("\nException! Failed to open input file!\n");
+        if (!lex.readInputFile(fileName))
+            throw runtime_error("\nException! Failed to open input file!\n");
 
-		lex.initialize();
+        lex.initialize();
 
-		retVal = lex.Do();
+        retVal = lex.Do();
 
-		if (retVal)
-		{
-			cout << "Lexical analysis finished successfully!" << endl;
-			lex.printTokens();
-		}
-		else
-		{
-			lex.printLexError();
-			throw runtime_error("\nException! Lexical analysis failed!\n");
-		}
+        if (retVal) {
+            cout << "Lexical analysis finished successfully!" << endl;
+        } else {
+            lex.printLexError();
+            throw runtime_error("\nException! Lexical analysis failed!\n");
+        }
 
-		SyntaxAnalysis syn(lex);
+        SyntaxAnalysis syn(lex);
 
-		retVal = syn.Do();
+        retVal = syn.Do();
 
-		if (retVal)
-		{
-			cout << "Syntax analysis finished successfully!" << endl;
-		}
-		else
-		{
-			cout << "Syntax analysis failed!" << endl;
-		}
+        if (retVal) {
+            cout << "Syntax analysis finished successfully!" << endl;
+        } else {
+            throw runtime_error("\nException! Syntax analysis failed!\n");
+        }
 
         LivenessAnalysis livenessAnalysis(syn);
         livenessAnalysis.DoLivenessAnalysis();
 
         InterferenceGraph ig(syn);
-		ig.DoInterferenceGraph();
-	}
-	catch (runtime_error e)
-	{
-		cout << e.what() << endl;
-		return 1;
-	}
+        ig.DoInterferenceGraph();
+    }
+    catch (runtime_error e) {
+        cout << e.what() << endl;
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }

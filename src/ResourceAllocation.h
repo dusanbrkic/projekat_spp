@@ -15,7 +15,7 @@ public:
     void printMatrix();
     void DoInterferenceGraph();
     struct ResourceAllocationError : std::runtime_error {
-        ResourceAllocationError() : runtime_error("Could not allocate resources!"){}
+        ResourceAllocationError() : runtime_error("\nException! Could not allocate resources!\n"){}
     };
 private:
     void fillInterferenceGraph(Instructions&);
