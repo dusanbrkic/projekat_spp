@@ -84,6 +84,16 @@ private:
 	void printAlreadyDeclaredError(Token token, int position_);
 
 	/**
+	* Prints the error message, and label that caused the invalidLabel error
+	*/
+	void printInvalidLabelError(Label*);
+
+    /**
+    * Prints the error message if there is no 'main' function
+    */
+    void printMissingMainFunctionError();
+
+	/**
 	* Checks if token used is previously declared
 	*/
 	void declared(Token token);
@@ -169,4 +179,5 @@ private:
 
 	friend class InterferenceGraph;
 	friend class LivenessAnalysis;
+	friend class MipsCode;
 };

@@ -21,4 +21,4 @@ add_executable(src
         LivenessAnalysis.h
         LivenessAnalysis.cpp
         ResourceAllocation.h
-        ResourceAllocation.cpp)
+        ResourceAllocation.cpp MipsCode.cpp MipsCode.h)

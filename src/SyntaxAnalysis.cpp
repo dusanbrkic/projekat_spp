@@ -31,6 +31,37 @@ bool SyntaxAnalysis::Do() {
 }
 
 void SyntaxAnalysis::DoSecondPass() {
+    bool has_main = false;
+    for (Function *f : functions) {
+        if (f->getName() == "main")
+            has_main = true;
+        int b = 1;
+        bool find = false;
+        if (!instructions.empty()) {
+            while (true) {
+                for (Instruction *i : instructions) {
+                    if (i->getPos() == f->getPosition() + b) {
+                        labels.push_back(new Label(f->getName(), f->getPosition() + 1));
+                        find = true;
+                        break;
+                    }
+                }
+                if (find) break;
+                if (b > instructions.back()->getPos()) {
+                    labels.push_back(new Label(f->getName(), f->getPosition() + 1));
+                    break;
+                }
+                b++;
+            }
+        } else {
+            labels.push_back(new Label(f->getName(), f->getPosition()));
+        }
+    }
+    if (!has_main) {
+        errorFound = true;
+        printMissingMainFunctionError();
+        return;
+    }
     tokenIterator = lexicalAnalysis.getTokenList().begin();
     currentToken = getNextToken();
     position = 0;
@@ -38,6 +69,9 @@ void SyntaxAnalysis::DoSecondPass() {
     Q();
 }
 
+void SyntaxAnalysis::printMissingMainFunctionError() {
+    cout << "Semantic error! Missing 'main' function!" << endl;
+}
 
 void SyntaxAnalysis::printSyntaxError(Token token) {
     cout << "Syntax error! Token: " << token.getValue() << " unexpected at line " << position << endl;
@@ -52,6 +86,11 @@ void SyntaxAnalysis::printAlreadyDeclaredError(Token token, int position_) {
          << position_ << endl;
 }
 
+void SyntaxAnalysis::printInvalidLabelError(Label *l) {
+    cout << "Semantic error! Label: " << l->getName() << " at line " << l->getPosition() << " points to no instruction "
+         << endl;
+}
+
 void SyntaxAnalysis::declared(Token token) {
     if (token.getType() == T_R_ID) {
         for (Variable *var : reg_variables)
@@ -61,6 +100,10 @@ void SyntaxAnalysis::declared(Token token) {
     } else if (token.getType() == T_ID) {
         for (Label *l : labels)
             if (l->getName() == token.getValue()) {
+                return;
+            }
+        for (Function *f : functions)
+            if (f->getName() == token.getValue()) {
                 return;
             }
     } else {
@@ -121,11 +164,15 @@ Label *SyntaxAnalysis::findLabelByName(Token t) {
 }
 
 void SyntaxAnalysis::linkJumpInstructions(Instruction *i, Label *l) {
-    Instruction *realI;
+    Instruction *realI = nullptr;
     Instruction *jumpToInstruction = l->nextInstruction(instructions);
     for (Instruction *in : instructions) if (in->getPos() == i->getPos()) realI = in;
-    realI->addSucc(jumpToInstruction);
-    jumpToInstruction->addPred(realI);
+    if (realI == nullptr) {
+        return;
+    } else {
+        realI->addSucc(jumpToInstruction);
+        jumpToInstruction->addPred(realI);
+    }
 }
 
 void SyntaxAnalysis::linkWithPreviousInstruction(Instruction *i) {
@@ -176,6 +223,7 @@ void SyntaxAnalysis::S() {
                         new Variable(currentToken.getValue(), position, Variable::VariableType::MEM_VAR));
             }
             eat(T_M_ID);
+            memory_variables.back()->value = currentToken.getValue();
             eat(T_NUM);
         } else if (currentToken.getType() == T_REG) {
             eat(T_REG);
@@ -225,6 +273,7 @@ void SyntaxAnalysis::E() {
         Variables src;
         Variables use;
         Variables def;
+        std::string literal = "0";
         if (currentToken.getType() == T_ADD) {
             eat(T_ADD);
             dest.push_back(findVariableByName(currentToken));
@@ -235,7 +284,7 @@ void SyntaxAnalysis::E() {
             eat(T_COMMA);
             src.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
-            i = new Instruction(position, I_ADD, dest, src, dest, src);
+            i = new Instruction(position, I_ADD, dest, src, dest, src, literal, "");
         } else if (currentToken.getType() == T_ADDI) {
             eat(T_ADDI);
             dest.push_back(findVariableByName(currentToken));
@@ -244,8 +293,9 @@ void SyntaxAnalysis::E() {
             src.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
             eat(T_COMMA);
+            literal = currentToken.getValue();
             eat(T_NUM);
-            i = new Instruction(position, I_ADDI, dest, src, dest, src);
+            i = new Instruction(position, I_ADDI, dest, src, dest, src, literal, "");
         } else if (currentToken.getType() == T_SUB) {
             eat(T_SUB);
             dest.push_back(findVariableByName(currentToken));
@@ -256,7 +306,7 @@ void SyntaxAnalysis::E() {
             eat(T_COMMA);
             src.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
-            i = new Instruction(position, I_SUB, dest, src, dest, src);
+            i = new Instruction(position, I_SUB, dest, src, dest, src, literal, "");
 
         } else if (currentToken.getType() == T_LA) {
             eat(T_LA);
@@ -265,42 +315,45 @@ void SyntaxAnalysis::E() {
             eat(T_COMMA);
             src.push_back(findVariableByName(currentToken));
             eat(T_M_ID);
-            i = new Instruction(position, I_LA, dest, src, dest, use);
+            i = new Instruction(position, I_LA, dest, src, dest, use, literal, "");
         } else if (currentToken.getType() == T_LW) {
             eat(T_LW);
             dest.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
             eat(T_COMMA);
+            literal = currentToken.getValue();
             eat(T_NUM);
             eat(T_L_PARENT);
             src.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
             eat(T_R_PARENT);
-            i = new Instruction(position, I_LW, dest, src, dest, src);
+            i = new Instruction(position, I_LW, dest, src, dest, src, literal, "");
         } else if (currentToken.getType() == T_LI) {
             eat(T_LI);
             dest.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
             eat(T_COMMA);
+            literal = currentToken.getValue();
             eat(T_NUM);
-            i = new Instruction(position, I_LI, dest, src, dest, src);
+            i = new Instruction(position, I_LI, dest, src, dest, src, literal, "");
         } else if (currentToken.getType() == T_SW) {
             eat(T_SW);
             src.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
             eat(T_COMMA);
+            literal = currentToken.getValue();
             eat(T_NUM);
             eat(T_L_PARENT);
             dest.push_back(findVariableByName(currentToken));
             eat(T_R_ID);
             eat(T_R_PARENT);
-            i = new Instruction(position, I_SW, dest, src, dest, src);
+            i = new Instruction(position, I_SW, dest, src, dest, src, literal, "");
         } else if (currentToken.getType() == T_B) {
             eat(T_B);
             if (secondPass) declared(currentToken);
             Token label = currentToken;
             eat(T_ID);
-            i = new Instruction(position, I_B, dest, src, dest, src);
+            i = new Instruction(position, I_B, dest, src, dest, src, literal, label.getValue());
             if (secondPass) linkJumpInstructions(i, findLabelByName(label));
         } else if (currentToken.getType() == T_BLTZ) {
             eat(T_BLTZ);
@@ -310,11 +363,42 @@ void SyntaxAnalysis::E() {
             if (secondPass) declared(currentToken);
             Token label = currentToken;
             eat(T_ID);
-            i = new Instruction(position, I_BLTZ, dest, src, dest, src);
+            i = new Instruction(position, I_BLTZ, dest, src, dest, src, literal, label.getValue());
             if (secondPass) linkJumpInstructions(i, findLabelByName(label));
         } else if (currentToken.getType() == T_NOP) {
             eat(T_NOP);
-            i = new Instruction(position, I_NOP, dest, src, dest, src);
+            i = new Instruction(position, I_NOP, dest, src, dest, src, literal, "");
+        } else if (currentToken.getType() == T_BEQ) {
+            eat(T_BEQ);
+            src.push_back(findVariableByName(currentToken));
+            eat(T_R_ID);
+            eat(T_COMMA);
+            src.push_back(findVariableByName(currentToken));
+            eat(T_R_ID);
+            eat(T_COMMA);
+            if (secondPass) declared(currentToken);
+            Token label = currentToken;
+            eat(T_ID);
+            i = new Instruction(position, I_BEQ, dest, src, dest, src, literal, label.getValue());
+        } else if (currentToken.getType() == T_ABS) {
+            eat(T_ABS);
+            dest.push_back(findVariableByName(currentToken));
+            eat(T_R_ID);
+            eat(T_COMMA);
+            src.push_back(findVariableByName(currentToken));
+            eat(T_R_ID);
+            i = new Instruction(position, I_ABS, dest, src, dest, src, literal, "");
+        } else if (currentToken.getType() == T_AND) {
+            eat(T_AND);
+            dest.push_back(findVariableByName(currentToken));
+            eat(T_R_ID);
+            eat(T_COMMA);
+            src.push_back(findVariableByName(currentToken));
+            eat(T_R_ID);
+            eat(T_COMMA);
+            src.push_back(findVariableByName(currentToken));
+            eat(T_R_ID);
+            i = new Instruction(position, I_AND, dest, src, dest, src, literal, "");
         } else {
             printSyntaxError(currentToken);
             errorFound = true;

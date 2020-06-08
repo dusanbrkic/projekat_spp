@@ -3,13 +3,15 @@
 #include "SyntaxAnalysis.h"
 #include "LivenessAnalysis.h"
 #include "ResourceAllocation.h"
+#include "MipsCode.h"
 
 using namespace std;
 
 int main() {
     try {
         std::string fileName = "..\\..\\examples\\multiply.mavn";
-        bool retVal = false;
+        std::string outputName = "..\\..\\examples\\multiply.s";
+        bool retVal;
 
         LexicalAnalysis lex;
 
@@ -44,6 +46,9 @@ int main() {
         InterferenceGraph interferenceGraph(syn);
         interferenceGraph.DoInterferenceGraph();
         cout << "Resource allocation finished successfully!" << endl;
+
+        MipsCode mc(syn, outputName);
+        mc.writeMipsCode();
     }
     catch (runtime_error e) {
         cout << e.what() << endl;
