@@ -83,11 +83,6 @@ private:
 	*/
 	void printAlreadyDeclaredError(Token token, int position_);
 
-	/**
-	* Prints the error message, and label that caused the invalidLabel error
-	*/
-	void printInvalidLabelError(Label*);
-
     /**
     * Prints the error message if there is no 'main' function
     */

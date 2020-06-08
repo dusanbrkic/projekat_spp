@@ -8,9 +8,14 @@
 #include "SyntaxAnalysis.h"
 #include <iomanip>
 
+/**
+ * This class creates MIPS code
+ */
 class MipsCode {
 public:
     MipsCode(SyntaxAnalysis&, std::string);
+
+    // writes MIPS code to file
     void writeMipsCode();
 private:
     SyntaxAnalysis& syntax;

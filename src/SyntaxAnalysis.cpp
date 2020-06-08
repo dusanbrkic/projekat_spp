@@ -31,12 +31,14 @@ bool SyntaxAnalysis::Do() {
 }
 
 void SyntaxAnalysis::DoSecondPass() {
+    //checks if there is a main function
     bool has_main = false;
     for (Function *f : functions) {
         if (f->getName() == "main")
             has_main = true;
         int b = 1;
         bool find = false;
+        // creates labels from functions
         if (!instructions.empty()) {
             while (true) {
                 for (Instruction *i : instructions) {
@@ -84,11 +86,6 @@ void SyntaxAnalysis::printUndeclaredError(Token token) {
 void SyntaxAnalysis::printAlreadyDeclaredError(Token token, int position_) {
     cout << "Semantic error! Token: " << token.getValue() << " at line " << position << " already declared at line "
          << position_ << endl;
-}
-
-void SyntaxAnalysis::printInvalidLabelError(Label *l) {
-    cout << "Semantic error! Label: " << l->getName() << " at line " << l->getPosition() << " points to no instruction "
-         << endl;
 }
 
 void SyntaxAnalysis::declared(Token token) {

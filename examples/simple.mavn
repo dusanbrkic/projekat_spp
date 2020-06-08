@@ -1,0 +1,12 @@
+_mem m1 6;
+_mem m2 5;
+_reg r1;
+_reg r2;
+_reg r3;
+_reg r4;
+_reg r5;
+_func kita;
+_func main1;
+_func main2;
+_func main3;
+	

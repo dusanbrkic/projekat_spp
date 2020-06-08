@@ -9,6 +9,9 @@
 #include "SyntaxAnalysis.h"
 #include <map>
 
+/**
+ * This class represent interference graph and performs resource allocation
+ */
 class InterferenceGraph {
 public:
     InterferenceGraph(SyntaxAnalysis&);
@@ -20,6 +23,7 @@ public:
 private:
     void fillInterferenceGraph(Instructions&);
     std::stack<Variable*> simplify(bool);
+    //performs resource allocation
     void doResourceAllocation();
 
     std::vector<std::vector<char>> matrix;

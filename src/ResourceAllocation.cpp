@@ -33,8 +33,10 @@ std::stack<Variable *> InterferenceGraph::simplify(bool firstPass) {
     Variables::iterator iterator;
     std::map<Variable *, int> m;
 
+    // puts '0'-s on main diagonal (creates adjacency matrix)
     if(firstPass) for (int i = 0; i < size; i++) matrix[i][i] = '0';
 
+    //insert all non deleted vertices to map
     iterator = variables.begin();
     for (int i = 0; i < size; i++) {
         if (matrix[i][i] != 'd')
@@ -44,6 +46,7 @@ std::stack<Variable *> InterferenceGraph::simplify(bool firstPass) {
 
     iterator = variables.begin();
 
+    //increment degrees of vertices if they have adjacent vertices
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             if (matrix[i][j] == '1')
@@ -52,21 +55,27 @@ std::stack<Variable *> InterferenceGraph::simplify(bool firstPass) {
         iterator++;
     }
 
+    //flips map to <value, key>, multimap can have more exact keys
     std::multimap<int, Variable *> flipped_map;
     for (std::map<Variable *, int>::iterator i = m.begin(); i != m.end(); i++)
         flipped_map.insert(std::pair<int, Variable *>(i->second, i->first));
 
+    // multimap is sorted, starting from the end (the greatest value)
     std::multimap<int, Variable *>::reverse_iterator i = flipped_map.rbegin();
+    // next section removes the vertex if it has the greatest degree in graph of less than __REG_NUMBER__
     while (i->first >= __REG_NUMBER__) {
         i++;
         if (i == flipped_map.rend())
             throw InterferenceGraph::ResourceAllocationError();
     }
+    //push vertex to the stack
     s.push(i->second);
+    //remove the vertex from matrix
     for (int k = 0; k < size; k++) {
         matrix.at(i->second->index).at(k) = 'd';
         matrix.at(k).at(i->second->index) = 'd';
     }
+    // if matrix has non deleted elements --> recursion
     for (int h = 0; h < size; h++)
         for (int g = 0; g < size; g++)
             if (matrix[h][g] != 'd')

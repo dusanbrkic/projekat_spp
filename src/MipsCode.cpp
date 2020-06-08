@@ -9,7 +9,7 @@ MipsCode::MipsCode(SyntaxAnalysis &analysis, std::string string) : syntax(analys
 void MipsCode::writeMipsCode() {
     std::ofstream output(fileName);
 
-    //sort labels by position
+    //sort labels by position, labels are not sorted because function labels are added in second pass
     Label *minPointer = syntax.labels.front();
     for (Labels::iterator li = syntax.labels.begin(); li != syntax.labels.end(); li++) {
         for (Labels::iterator li2 = syntax.labels.begin(); li2 != syntax.labels.end(); li2++) {
