@@ -23,8 +23,8 @@ lab:
 	sub		r7, r5, r4;
 	addi	r5, r5, 1;
 	bltz	r7, lab;
+	
 	la		r8, m3;
 	sw		r6, 0(r8);
-    nop;
-
-_func main2;
+	nop;
+	

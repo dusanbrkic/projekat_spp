@@ -1,5 +1,4 @@
 .globl main
-.globl main2
 
 .data
 
@@ -23,4 +22,3 @@ lab:
                   la                  $t0, m3
                   sw                  $t3, 0($t0)
                  nop
-main2:

@@ -351,7 +351,7 @@ void SyntaxAnalysis::E() {
             Token label = currentToken;
             eat(T_ID);
             i = new Instruction(position, I_B, dest, src, dest, src, literal, label.getValue());
-            if (secondPass) linkJumpInstructions(i, findLabelByName(label));
+            if (secondPass && !errorFound) linkJumpInstructions(i, findLabelByName(label));
         } else if (currentToken.getType() == T_BLTZ) {
             eat(T_BLTZ);
             src.push_back(findVariableByName(currentToken));
@@ -361,7 +361,7 @@ void SyntaxAnalysis::E() {
             Token label = currentToken;
             eat(T_ID);
             i = new Instruction(position, I_BLTZ, dest, src, dest, src, literal, label.getValue());
-            if (secondPass) linkJumpInstructions(i, findLabelByName(label));
+            if (secondPass && !errorFound) linkJumpInstructions(i, findLabelByName(label));
         } else if (currentToken.getType() == T_NOP) {
             eat(T_NOP);
             i = new Instruction(position, I_NOP, dest, src, dest, src, literal, "");
@@ -377,6 +377,7 @@ void SyntaxAnalysis::E() {
             Token label = currentToken;
             eat(T_ID);
             i = new Instruction(position, I_BEQ, dest, src, dest, src, literal, label.getValue());
+            if (secondPass && !errorFound) linkJumpInstructions(i, findLabelByName(label));
         } else if (currentToken.getType() == T_ABS) {
             eat(T_ABS);
             dest.push_back(findVariableByName(currentToken));
