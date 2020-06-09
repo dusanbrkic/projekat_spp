@@ -21,7 +21,7 @@ public:
         ResourceAllocationError() : runtime_error("\nException! Could not allocate resources!\n"){}
     };
 private:
-    void fillInterferenceGraph(Instructions&);
+    void fillInterferenceGraph();
     std::stack<Variable*> simplify(bool);
     //performs resource allocation
     void doResourceAllocation();

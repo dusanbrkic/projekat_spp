@@ -3,7 +3,7 @@
 //
 #include "ResourceAllocation.h"
 
-void InterferenceGraph::fillInterferenceGraph(Instructions &instructions) {
+void InterferenceGraph::fillInterferenceGraph() {
     for (Instruction *i : instructions) {
         for (Variable *v : i->m_def) {
             for (Variable *out : i->m_out) {
@@ -126,8 +126,8 @@ void InterferenceGraph::doResourceAllocation() {
 }
 
 void InterferenceGraph::DoInterferenceGraph() {
-    fillInterferenceGraph(instructions);
+    fillInterferenceGraph();
     simplify(true);
-    fillInterferenceGraph(instructions);
+    fillInterferenceGraph();
     doResourceAllocation();
 }

@@ -69,7 +69,7 @@ public:
 
     void addPred(Instruction *i) { m_pred.push_back(i); }
 
-    std::string writeInfo(std::ostream &outFile) {
+    void writeInfo(std::ostream &outFile) {
             if (m_type == I_ADD)
                     outFile << std::setw(LEFT_ALIGN) << "add" << std::setw(LEFT_ALIGN) << "$t"
                             << m_dst.back()->m_assignment - 1 << ", $t" << m_src.front()->m_assignment - 1
