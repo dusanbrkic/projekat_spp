@@ -43,7 +43,7 @@ void SyntaxAnalysis::DoSecondPass() {
             while (true) {
                 for (Instruction *i : instructions) {
                     if (i->getPos() == f->getPosition() + b) {
-                        labels.push_back(new Label(f->getName(), f->getPosition() + 1));
+                        labels.push_back(new Label(f->getName(), f->getPosition() + b));
                         find = true;
                         break;
                     }
@@ -164,7 +164,7 @@ void SyntaxAnalysis::linkJumpInstructions(Instruction *i, Label *l) {
     Instruction *realI = nullptr;
     Instruction *jumpToInstruction = l->nextInstruction(instructions);
     for (Instruction *in : instructions) if (in->getPos() == i->getPos()) realI = in;
-    if (realI == nullptr) {
+    if (realI == nullptr & jumpToInstruction == nullptr) {
         return;
     } else {
         realI->addSucc(jumpToInstruction);
